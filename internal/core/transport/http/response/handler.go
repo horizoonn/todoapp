@@ -1,4 +1,4 @@
-package http_response
+package core_http_response
 
 import (
 	"encoding/json"

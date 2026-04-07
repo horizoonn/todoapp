@@ -7,15 +7,14 @@ import (
 
 	"github.com/horizoonn/todoapp/internal/core/domain"
 	core_logger "github.com/horizoonn/todoapp/internal/core/logger"
-	http_request "github.com/horizoonn/todoapp/internal/core/transport/http/request"
-	http_response "github.com/horizoonn/todoapp/internal/core/transport/http/response"
-	http_types "github.com/horizoonn/todoapp/internal/core/transport/http/types"
-	http_utils "github.com/horizoonn/todoapp/internal/core/transport/http/utils"
+	core_http_request "github.com/horizoonn/todoapp/internal/core/transport/http/request"
+	core_http_response "github.com/horizoonn/todoapp/internal/core/transport/http/response"
+	core_http_types "github.com/horizoonn/todoapp/internal/core/transport/http/types"
 )
 
 type PatchUserRequest struct {
-	FullName    http_types.Nullable[string] `json:"full_name"`
-	PhoneNumber http_types.Nullable[string] `json:"phone_number"`
+	FullName    core_http_types.Nullable[string] `json:"full_name"`
+	PhoneNumber core_http_types.Nullable[string] `json:"phone_number"`
 }
 
 func (r *PatchUserRequest) Validate() error {
@@ -49,9 +48,9 @@ type PatchUserResponse UserDTOResponse
 func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-	responseHandler := http_response.NewHTTPResponseHandler(log, rw)
+	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
 
-	userID, err := http_utils.GetIntPathValue(r, "id")
+	userID, err := core_http_request.GetIntPathValue(r, "id")
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get userID path value")
 
@@ -60,7 +59,7 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 
 	var request PatchUserRequest
 
-	if err := http_request.DecodeAndValidateRequest(r, &request); err != nil {
+	if err := core_http_request.DecodeAndValidateRequest(r, &request); err != nil {
 		responseHandler.ErrorResponse(err, "failed to decode and validate HTTP request")
 
 		return
@@ -81,8 +80,5 @@ func (h *UsersHTTPHandler) PatchUser(rw http.ResponseWriter, r *http.Request) {
 }
 
 func userPatchFromRequest(request PatchUserRequest) domain.UserPatch {
-	return domain.UserPatch{
-		FullName:    request.FullName.ToDomain(),
-		PhoneNumber: request.PhoneNumber.ToDomain(),
-	}
+	return domain.NewUserPatch(request.FullName.ToDomain(), request.PhoneNumber.ToDomain())
 }

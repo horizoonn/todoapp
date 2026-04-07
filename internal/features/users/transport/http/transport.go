@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/horizoonn/todoapp/internal/core/domain"
-	http_server "github.com/horizoonn/todoapp/internal/core/transport/http/server"
+	core_http_server "github.com/horizoonn/todoapp/internal/core/transport/http/server"
 )
 
 type UsersHTTPHandler struct {
@@ -28,8 +28,8 @@ func NewUsersHTTPHandler(
 	}
 }
 
-func (h *UsersHTTPHandler) Routes() []http_server.Route {
-	return []http_server.Route{
+func (h *UsersHTTPHandler) Routes() []core_http_server.Route {
+	return []core_http_server.Route{
 		{
 			Method:  http.MethodPost,
 			Path:    "/users",

@@ -1,4 +1,4 @@
-package http_request
+package core_http_request
 
 import (
 	"encoding/json"

@@ -4,16 +4,16 @@ import (
 	"net/http"
 
 	core_logger "github.com/horizoonn/todoapp/internal/core/logger"
-	http_response "github.com/horizoonn/todoapp/internal/core/transport/http/response"
-	http_utils "github.com/horizoonn/todoapp/internal/core/transport/http/utils"
+	core_http_request "github.com/horizoonn/todoapp/internal/core/transport/http/request"
+	core_http_response "github.com/horizoonn/todoapp/internal/core/transport/http/response"
 )
 
 func (h *UsersHTTPHandler) DeleteUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
-	responseHandler := http_response.NewHTTPResponseHandler(log, rw)
+	responseHandler := core_http_response.NewHTTPResponseHandler(log, rw)
 
-	userID, err := http_utils.GetIntPathValue(r, "id")
+	userID, err := core_http_request.GetIntPathValue(r, "id")
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get userID path value")
 

@@ -21,7 +21,7 @@ type contextKey string
 
 const loggerContextKey = contextKey("logger")
 
-func NewContext(ctx context.Context, logger *Logger) context.Context {
+func ToContext(ctx context.Context, logger *Logger) context.Context {
 	return context.WithValue(ctx, loggerContextKey, logger)
 }
 

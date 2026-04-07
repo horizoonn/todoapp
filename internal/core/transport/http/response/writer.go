@@ -1,4 +1,4 @@
-package http_response
+package core_http_response
 
 import "net/http"
 
@@ -23,9 +23,9 @@ func (rw *ResponseWriter) WriteHeader(statusCode int) {
 	rw.statusCode = statusCode
 }
 
-func (rw *ResponseWriter) GetStatusCodeOrPanic() int {
+func (rw *ResponseWriter) GetStatusCode() int {
 	if rw.statusCode == statusCodeInitialized {
-		panic("no status code set")
+		return http.StatusOK
 	}
 
 	return rw.statusCode

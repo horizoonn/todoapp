@@ -1,4 +1,4 @@
-package http_types
+package core_http_types
 
 import (
 	"encoding/json"

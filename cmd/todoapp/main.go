@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	core_logger "github.com/horizoonn/todoapp/internal/core/logger"
-	postgres_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool"
+	core_pgx_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool/pgx"
 	http_middleware "github.com/horizoonn/todoapp/internal/core/transport/http/middleware"
 	http_server "github.com/horizoonn/todoapp/internal/core/transport/http/server"
 	users_postgres_repository "github.com/horizoonn/todoapp/internal/features/users/repository/postgres"
@@ -28,8 +28,8 @@ func main() {
 	}
 	defer logger.Close()
 
-	logger.Debug("initializing postgres connecion pool")
-	pool, err := postgres_pool.NewConnectionPool(ctx, postgres_pool.NewConfigMust())
+	logger.Debug("initializing postgres connection pool")
+	pool, err := core_pgx_pool.NewPool(ctx, core_pgx_pool.NewConfigMust())
 	if err != nil {
 		logger.Fatal("failed to init postgres connection pool", zap.Error(err))
 	}
@@ -47,8 +47,8 @@ func main() {
 		*logger,
 		http_middleware.RequestID(),
 		http_middleware.Logger(logger),
-		http_middleware.Panic(),
 		http_middleware.Trace(),
+		http_middleware.Panic(),
 	)
 
 	apiVersionRouter := http_server.NewAPIVersionRouter(http_server.ApiVersion1)
