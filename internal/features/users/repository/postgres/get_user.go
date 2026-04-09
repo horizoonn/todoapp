@@ -37,12 +37,7 @@ func (r *UsersRepository) GetUser(ctx context.Context, id int) (domain.User, err
 		return domain.User{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	userDomain := domain.NewUser(
-		userModel.ID,
-		userModel.Version,
-		userModel.FullName,
-		userModel.PhoneNumber,
-	)
+	userDomain := userDomainFromModel(userModel)
 
 	return userDomain, nil
 }

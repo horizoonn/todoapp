@@ -10,7 +10,7 @@ import (
 	core_postgres_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool"
 )
 
-func (r UsersRepository) PatchUser(ctx context.Context, id int, user domain.User) (domain.User, error) {
+func (r *UsersRepository) PatchUser(ctx context.Context, id int, user domain.User) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -41,12 +41,7 @@ func (r UsersRepository) PatchUser(ctx context.Context, id int, user domain.User
 		return domain.User{}, fmt.Errorf("user scan: %w", err)
 	}
 
-	userDomain := domain.NewUser(
-		userModel.ID,
-		userModel.Version,
-		userModel.FullName,
-		userModel.PhoneNumber,
-	)
+	userDomain := userDomainFromModel(userModel)
 
 	return userDomain, nil
 }

@@ -53,9 +53,20 @@ migrate-action:
 	-database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@todoapp-postgres:5432/${POSTGRES_DB}?sslmode=disable \
 	"$(action)"
 
+logs-cleanup:
+	@read -p "Очистить log файлы? Опасность утери логов. [y/n]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		docker compose down todoapp-postgres port-forwarder && \
+		sudo rm -rf ${PROJECT_ROOT}/.out/logs && \
+		echo "Файлы логов очищены"; \
+	else \
+		echo "Очистка логов отменена"; \
+	fi
+
 todoapp-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/.out/logs && \
 	export POSTGRES_HOST=localhost && \
 	export POSTGRES_PORT=5433 && \
 	go mod tidy && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
+
