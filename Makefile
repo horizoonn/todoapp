@@ -12,18 +12,12 @@ env-down:
 env-cleanup:
 	@read -p "Очистить все volume файлы окружения? Опасность утери данных. [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todoapp-postgres port-forwarder && \
+		docker compose down todoapp-postgres && \
 		sudo rm -rf ${PROJECT_ROOT}/.out/pgdata && \
 		echo "Файлы окружения очищены"; \
 	else \
 		echo "Очистка окружения отменена"; \
 	fi
-
-env-port-forward:
-	@docker compose up -d port-forwarder
-
-env-port-close:
-	@docker compose down port-forwarder
 
 migrate-create:
 	@if [ -z "$(seq)" ]; then \
@@ -39,7 +33,6 @@ migrate-create:
 migrate-up:
 	@make migrate-action action=up
 	
-
 migrate-down:
 	@make migrate-action action=down
 
@@ -56,7 +49,7 @@ migrate-action:
 logs-cleanup:
 	@read -p "Очистить log файлы? Опасность утери логов. [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todoapp-postgres port-forwarder && \
+		docker compose down todoapp-postgres && \
 		sudo rm -rf ${PROJECT_ROOT}/.out/logs && \
 		echo "Файлы логов очищены"; \
 	else \
@@ -70,3 +63,8 @@ todoapp-run:
 	go mod tidy && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
 
+todoapp-deploy:
+	@docker compose up -d --build todoapp
+
+ps:
+	@docker compose ps
