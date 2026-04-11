@@ -22,3 +22,35 @@ func NewStats(
 		TasksAverageCompletionTime: tasksAverageCompletionTime,
 	}
 }
+
+func CalcStats(tasks []Task) Stats {
+	if len(tasks) == 0 {
+		return NewStats(0, 0, nil, nil)
+	}
+
+	tasksCreated := len(tasks)
+	tasksCompleted := 0
+	var totalCompletionDuration time.Duration
+
+	for _, task := range tasks {
+		if task.Completed {
+			tasksCompleted++
+		}
+
+		completionDuration := task.CompletionDuration()
+		if completionDuration != nil {
+			totalCompletionDuration += *completionDuration
+		}
+	}
+
+	const percentMultiplier = 100
+	tasksCompletedRate := float64(tasksCompleted) / float64(tasksCreated) * percentMultiplier
+
+	var tasksAverageCompletionTime *time.Duration
+	if tasksCompleted > 0 {
+		avg := totalCompletionDuration / time.Duration(tasksCompleted)
+		tasksAverageCompletionTime = &avg
+	}
+
+	return NewStats(tasksCreated, tasksCompleted, &tasksCompletedRate, tasksAverageCompletionTime)
+}

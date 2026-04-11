@@ -18,9 +18,11 @@ func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 
 	limit, offset, err := getLimitOffsetQueryParams(r)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to get 'limit'/'offset' query param")
+		responseHandler.ErrorResponse(err, "failed to get 'limit'/'offset' query params")
+
 		return
 	}
+
 
 	userDomains, err := h.usersService.GetUsers(ctx, limit, offset)
 	if err != nil {

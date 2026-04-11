@@ -24,15 +24,15 @@ func (r *PatchUserRequest) Validate() error {
 		}
 
 		fullNameLen := len([]rune(*r.FullName.Value))
-		if fullNameLen < 3 || fullNameLen > 100 {
-			return fmt.Errorf("`FullName` must be between 3 and 100 symbols")
+		if fullNameLen < domain.MinUserFullNameLen || fullNameLen > domain.MaxUserFullNameLen {
+			return fmt.Errorf("`FullName` must be between %d and %d symbols", domain.MinUserFullNameLen, domain.MaxUserFullNameLen)
 		}
 	}
 
 	if r.PhoneNumber.Set && r.PhoneNumber.Value != nil {
 		phoneNumberLen := len([]rune(*r.PhoneNumber.Value))
-		if phoneNumberLen < 10 || phoneNumberLen > 15 {
-			return fmt.Errorf("`PhoneNumber` must be between 10 and 15 symbols")
+		if phoneNumberLen < domain.MinUserPhoneNumberLen || phoneNumberLen > domain.MaxUserPhoneNumberLen {
+			return fmt.Errorf("`PhoneNumber` must be between %d and %d symbols", domain.MinUserPhoneNumberLen, domain.MaxUserPhoneNumberLen)
 		}
 
 		if !strings.HasPrefix(*r.PhoneNumber.Value, "+") {

@@ -7,6 +7,14 @@ import (
 	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
 )
 
+const (
+	MinUserFullNameLen = 3
+	MaxUserFullNameLen = 100
+
+	MinUserPhoneNumberLen = 10
+	MaxUserPhoneNumberLen = 15
+)
+
 var phoneRegexp = regexp.MustCompile(`^\+[0-9]{9,14}$`)
 
 type User struct {
@@ -32,18 +40,18 @@ func NewUserUninitialized(fullName string, phoneNumber *string) User {
 
 func (u *User) Validate() error {
 	fullNameLen := len([]rune(u.FullName))
-	if fullNameLen < 3 || fullNameLen > 100 {
-		return fmt.Errorf("invalid `FullName` len: %d: %w", fullNameLen, core_errors.ErrInvalidArgument)
+	if fullNameLen < MinUserFullNameLen || fullNameLen > MaxUserFullNameLen {
+		return fmt.Errorf("invalid `FullName` len: %d (min: %d, max: %d): %w", fullNameLen, MinUserFullNameLen, MaxUserFullNameLen, core_errors.ErrInvalidArgument)
 	}
 
 	if u.PhoneNumber != nil {
 		phoneNumberLen := len([]rune(*u.PhoneNumber))
-		if phoneNumberLen < 10 || phoneNumberLen > 15 {
-			return fmt.Errorf("invalid `PhoneNumber` len: %d: %w", phoneNumberLen, core_errors.ErrInvalidArgument)
+		if phoneNumberLen < MinUserPhoneNumberLen || phoneNumberLen > MaxUserPhoneNumberLen {
+			return fmt.Errorf("invalid `PhoneNumber` len: %d (min: %d, max: %d): %w", phoneNumberLen, MinUserPhoneNumberLen, MaxUserPhoneNumberLen, core_errors.ErrInvalidArgument)
 		}
 
 		if !phoneRegexp.MatchString(*u.PhoneNumber) {
-			return fmt.Errorf("invalid `Phone Number` format: %w", core_errors.ErrInvalidArgument)
+			return fmt.Errorf("invalid `Phone Number` format: must start with '+' followed by 9-14 digits: %w", core_errors.ErrInvalidArgument)
 		}
 	}
 

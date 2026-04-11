@@ -24,8 +24,8 @@ func (r *PatchTaskRequest) Validate() error {
 		}
 
 		titleLen := len([]rune(*r.Title.Value))
-		if titleLen < 1 || titleLen > 100 {
-			return fmt.Errorf("`Title` must be between 1 and 100 symbols")
+		if titleLen < domain.MinTaskTitleLen || titleLen > domain.MaxTaskTitleLen {
+			return fmt.Errorf("`Title` must be between %d and %d symbols", domain.MinTaskTitleLen, domain.MaxTaskTitleLen)
 		}
 	}
 
@@ -33,8 +33,8 @@ func (r *PatchTaskRequest) Validate() error {
 		if r.Description.Value != nil {
 			descriptionLen := len([]rune(*r.Description.Value))
 
-			if descriptionLen < 1 || descriptionLen > 1000 {
-				return fmt.Errorf("`Description` must be between 1 and 1000 symbols")
+			if descriptionLen < domain.MinTaskDescriptionLen || descriptionLen > domain.MaxTaskDescriptionLen {
+				return fmt.Errorf("`Description` must be between %d and %d symbols", domain.MinTaskDescriptionLen, domain.MaxTaskDescriptionLen)
 			}
 		}
 	}

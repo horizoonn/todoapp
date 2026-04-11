@@ -82,7 +82,7 @@ func Panic() Middleware {
 
 			defer func() {
 				if p := recover(); p != nil {
-					responseHandler.PanicResponse(p, "during handle HTTP request got unexpected panic")
+					responseHandler.PanicResponse(p, "an unexpected panic occurred while handling the HTTP request")
 				}
 			}()
 

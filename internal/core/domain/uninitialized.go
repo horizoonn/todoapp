@@ -1,6 +1,6 @@
 package domain
 
-var (
+const (
 	UninitializedID      = -1
 	UninitializedVersion = -1
 )

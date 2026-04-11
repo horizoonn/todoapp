@@ -43,19 +43,18 @@ func (h *StatsHTTPHandler) GetStats(rw http.ResponseWriter, r *http.Request) {
 }
 
 func toDTOFromDomain(stats domain.Stats) GetStatsResponse {
-	var avgTime *string
+	response := GetStatsResponse{
+		TasksCreated:       stats.TasksCreated,
+		TasksCompleted:     stats.TasksCompleted,
+		TasksCompletedRate: stats.TasksCompletedRate,
+	}
 
 	if stats.TasksAverageCompletionTime != nil {
-		duration := stats.TasksAverageCompletionTime.String()
-		avgTime = &duration
+		durationStr := stats.TasksAverageCompletionTime.String()
+		response.TasksAverageCompletionTime = &durationStr
 	}
 
-	return GetStatsResponse{
-		TasksCreated:               stats.TasksCreated,
-		TasksCompleted:             stats.TasksCompleted,
-		TasksCompletedRate:         stats.TasksCompletedRate,
-		TasksAverageCompletionTime: avgTime,
-	}
+	return response
 }
 
 func getUserIDFromToQueryParams(r *http.Request) (*int, *time.Time, *time.Time, error) {

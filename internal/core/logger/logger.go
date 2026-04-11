@@ -28,7 +28,8 @@ func ToContext(ctx context.Context, logger *Logger) context.Context {
 func FromContext(ctx context.Context) *Logger {
 	log, ok := ctx.Value(loggerContextKey).(*Logger)
 	if !ok {
-		panic("no logger in context")
+		// Return a safe no-op logger instead of panicking to prevent app crash
+		return &Logger{Logger: zap.NewNop()}
 	}
 
 	return log
@@ -37,7 +38,7 @@ func FromContext(ctx context.Context) *Logger {
 func NewLogger(config Config) (*Logger, error) {
 	zapLvl := zap.NewAtomicLevel()
 	if err := zapLvl.UnmarshalText([]byte(config.Level)); err != nil {
-		return nil, fmt.Errorf("unmarshall log level: %w", err)
+		return nil, fmt.Errorf("unmarshal log level: %w", err)
 	}
 
 	if err := os.MkdirAll(config.Folder, 0755); err != nil {
@@ -81,7 +82,9 @@ func (l *Logger) With(field ...zap.Field) *Logger {
 }
 
 func (l *Logger) Close() {
-	if err := l.file.Close(); err != nil {
-		fmt.Printf("failed to close application logger: %v", err)
+	if l.file != nil {
+		if err := l.file.Close(); err != nil {
+			fmt.Printf("failed to close application logger: %v\n", err)
+		}
 	}
 }

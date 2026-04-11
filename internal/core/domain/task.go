@@ -7,6 +7,14 @@ import (
 	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
 )
 
+const (
+	MinTaskTitleLen = 1
+	MaxTaskTitleLen = 100
+
+	MinTaskDescriptionLen = 1
+	MaxTaskDescriptionLen = 1000
+)
+
 type Task struct {
 	ID      int
 	Version int
@@ -71,14 +79,14 @@ func (t *Task) CompletionDuration() *time.Duration {
 
 func (t *Task) Validate() error {
 	titleLen := len([]rune(t.Title))
-	if titleLen < 1 || titleLen > 100 {
-		return fmt.Errorf("invalid `Title` len: %d: %w", titleLen, core_errors.ErrInvalidArgument)
+	if titleLen < MinTaskTitleLen || titleLen > MaxTaskTitleLen {
+		return fmt.Errorf("invalid `Title` len: %d (min: %d, max: %d): %w", titleLen, MinTaskTitleLen, MaxTaskTitleLen, core_errors.ErrInvalidArgument)
 	}
 
 	if t.Description != nil {
 		descriptionLen := len([]rune(*t.Description))
-		if descriptionLen < 1 || descriptionLen > 1000 {
-			return fmt.Errorf("invalid `Description` len: %d: %w", descriptionLen, core_errors.ErrInvalidArgument)
+		if descriptionLen < MinTaskDescriptionLen || descriptionLen > MaxTaskDescriptionLen {
+			return fmt.Errorf("invalid `Description` len: %d (min: %d, max: %d): %w", descriptionLen, MinTaskDescriptionLen, MaxTaskDescriptionLen, core_errors.ErrInvalidArgument)
 		}
 	}
 

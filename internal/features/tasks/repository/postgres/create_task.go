@@ -46,8 +46,7 @@ func (r *TasksRepository) CreateTask(ctx context.Context, task domain.Task) (dom
 	if err != nil {
 		if errors.Is(err, core_postgres_pool.ErrViolatesForeignKey) {
 			return domain.Task{}, fmt.Errorf(
-				"%v: user with id='%d': %w",
-				err,
+				"author user with id='%d' not found: %w",
 				task.AuthorUserID,
 				core_postgres_pool.ErrViolatesForeignKey,
 			)
