@@ -67,7 +67,7 @@ todoapp-deploy:
 	@docker compose up -d --build todoapp
 
 todoapp-undeploy:
-	@docker compose down todoapp
+	@docker compose stop todoapp && docker compose rm -f todoapp
 
 ps:
 	@docker compose ps
