@@ -13,6 +13,9 @@ import (
 	core_pgx_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool/pgx"
 	http_middleware "github.com/horizoonn/todoapp/internal/core/transport/http/middleware"
 	http_server "github.com/horizoonn/todoapp/internal/core/transport/http/server"
+	stats_postgres_repository "github.com/horizoonn/todoapp/internal/features/stats/repository/postgres"
+	stats_service "github.com/horizoonn/todoapp/internal/features/stats/service"
+	stats_transport_http "github.com/horizoonn/todoapp/internal/features/stats/transport/http"
 	tasks_postgres_repository "github.com/horizoonn/todoapp/internal/features/tasks/repository/postgres"
 	tasks_service "github.com/horizoonn/todoapp/internal/features/tasks/service"
 	tasks_transport_http "github.com/horizoonn/todoapp/internal/features/tasks/transport/http"
@@ -55,6 +58,11 @@ func main() {
 	tasksService := tasks_service.NewTasksService(tasksRepository)
 	tasksTransportHTTP := tasks_transport_http.NewTasksHTTPHandler(tasksService)
 
+	logger.Debug("initializing feature", zap.String("feature", "stats"))
+	statsRepository := stats_postgres_repository.NewStatsRepository(pool)
+	statsService := stats_service.NewStatsService(statsRepository)
+	statsTransportHTTP := stats_transport_http.NewStatsHTTPHandler(statsService)
+
 	logger.Debug("initializing HTTP server")
 	httpServer := http_server.NewHTTPServer(
 		http_server.NewConfigMust(),
@@ -68,6 +76,7 @@ func main() {
 	apiVersionRouter := http_server.NewAPIVersionRouter(http_server.ApiVersion1)
 	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
 	apiVersionRouter.RegisterRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouter.RegisterRoutes(statsTransportHTTP.Routes()...)
 
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 
