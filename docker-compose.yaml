@@ -19,6 +19,7 @@ services:
       - LOGGER_FOLDER=/app/.out/logs
       - HTTP_ADDR=:5050
       - HTTP_SHUTDOWN_TIMEOUT=${HTTP_SHUTDOWN_TIMEOUT}
+      - HTTP_ALLOWED_ORIGINS=${HTTP_ALLOWED_ORIGINS}
       - TIME_ZONE=${TIME_ZONE}
     volumes:
       - ${PROJECT_ROOT}/.out/logs:/app/.out/logs

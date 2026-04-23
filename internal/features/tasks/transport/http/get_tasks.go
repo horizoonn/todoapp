@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/google/uuid"
 	core_logger "github.com/horizoonn/todoapp/internal/core/logger"
 	core_http_request "github.com/horizoonn/todoapp/internal/core/transport/http/request"
 	core_http_response "github.com/horizoonn/todoapp/internal/core/transport/http/response"
@@ -35,14 +36,14 @@ func (h *TasksHTTPHandler) GetTasks(rw http.ResponseWriter, r *http.Request) {
 	responseHandler.JSONResponse(response, http.StatusOK)
 }
 
-func getUserIDLimitOffsetQueryParams(r *http.Request) (*int, *int, *int, error) {
+func getUserIDLimitOffsetQueryParams(r *http.Request) (*uuid.UUID, *int, *int, error) {
 	const (
 		userIDQueryParam    = "user_id"
 		limitQueryParamKey  = "limit"
 		offsetQueryParamKey = "offset"
 	)
 
-	userID, err := core_http_request.GetIntQueryParam(r, userIDQueryParam)
+	userID, err := core_http_request.GetUUIDQueryParam(r, userIDQueryParam)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("get 'user_id' query param: %w", err)
 	}

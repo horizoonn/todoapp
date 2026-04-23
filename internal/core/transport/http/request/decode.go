@@ -3,6 +3,7 @@ package core_http_request
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -16,8 +17,15 @@ type validatable interface {
 }
 
 func DecodeAndValidateRequest(r *http.Request, dest any) error {
-	if err := json.NewDecoder(r.Body).Decode(dest); err != nil {
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(dest); err != nil {
 		return fmt.Errorf("decode json: %w", core_errors.ErrInvalidArgument)
+	}
+
+	if err := decoder.Decode(&struct{}{}); err != io.EOF {
+		return fmt.Errorf("decode trailing json: %w", core_errors.ErrInvalidArgument)
 	}
 
 	var (

@@ -2,9 +2,9 @@ package stats_service
 
 import (
 	"context"
-	"time"
 
 	"github.com/horizoonn/todoapp/internal/core/domain"
+	stats_feature "github.com/horizoonn/todoapp/internal/features/stats"
 )
 
 type StatsService struct {
@@ -12,7 +12,7 @@ type StatsService struct {
 }
 
 type StatsRepository interface {
-	GetTasks(ctx context.Context, userID *int, from *time.Time, to *time.Time) ([]domain.Task, error)
+	GetStats(ctx context.Context, filter stats_feature.GetStatsFilter) (domain.Stats, error)
 }
 
 func NewStatsService(statsRepository StatsRepository) *StatsService {

@@ -3,7 +3,9 @@ package users_service
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/horizoonn/todoapp/internal/core/domain"
+	users_feature "github.com/horizoonn/todoapp/internal/features/users"
 )
 
 type UsersService struct {
@@ -11,11 +13,11 @@ type UsersService struct {
 }
 
 type UsersRepository interface {
-	CreateUser(ctx context.Context, user domain.User) (domain.User, error)
-	GetUsers(ctx context.Context, limit *int, offset *int) ([]domain.User, error)
-	GetUser(ctx context.Context, id int) (domain.User, error)
-	DeleteUser(ctx context.Context, id int) error
-	PatchUser(ctx context.Context, id int, user domain.User) (domain.User, error)
+	SaveUser(ctx context.Context, user domain.User) (domain.User, error)
+	GetUsers(ctx context.Context, filter users_feature.GetUsersFilter) ([]domain.User, error)
+	GetUser(ctx context.Context, id uuid.UUID) (domain.User, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) error
+	UpdateUser(ctx context.Context, user domain.User) (domain.User, error)
 }
 
 func NewUsersService(usersRepository UsersRepository) *UsersService {

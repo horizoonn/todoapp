@@ -5,21 +5,22 @@ import (
 	"fmt"
 
 	"github.com/horizoonn/todoapp/internal/core/domain"
+	users_feature "github.com/horizoonn/todoapp/internal/features/users"
 )
 
-func (r *UsersRepository) GetUsers(ctx context.Context, limit *int, offset *int) ([]domain.User, error) {
+func (r *UsersRepository) GetUsers(ctx context.Context, filter users_feature.GetUsersFilter) ([]domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
 	SELECT id, version, full_name, phone_number
 	FROM todoapp.users
-	ORDER BY id ASC
+	ORDER BY full_name ASC, id ASC
 	LIMIT $1
 	OFFSET $2;
 	`
 
-	rows, err := r.pool.Query(ctx, query, limit, offset)
+	rows, err := r.pool.Query(ctx, query, filter.Limit, filter.Offset)
 	if err != nil {
 		return nil, fmt.Errorf("select users: %w", err)
 	}
@@ -28,14 +29,7 @@ func (r *UsersRepository) GetUsers(ctx context.Context, limit *int, offset *int)
 	var userModels []UserModel
 	for rows.Next() {
 		var userModel UserModel
-
-		err := rows.Scan(
-			&userModel.ID,
-			&userModel.Version,
-			&userModel.FullName,
-			&userModel.PhoneNumber,
-		)
-		if err != nil {
+		if err := userModel.Scan(rows); err != nil {
 			return nil, fmt.Errorf("scan users: %w", err)
 		}
 
@@ -45,7 +39,7 @@ func (r *UsersRepository) GetUsers(ctx context.Context, limit *int, offset *int)
 		return nil, fmt.Errorf("next rows: %w", err)
 	}
 
-	userDomains := userDomainsFromModels(userModels)
+	userDomains := modelsToDomains(userModels)
 
 	return userDomains, nil
 }

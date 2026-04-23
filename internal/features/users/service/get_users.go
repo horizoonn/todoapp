@@ -5,28 +5,25 @@ import (
 	"fmt"
 
 	"github.com/horizoonn/todoapp/internal/core/domain"
-	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
+	"github.com/horizoonn/todoapp/internal/core/pagination"
+	users_feature "github.com/horizoonn/todoapp/internal/features/users"
+)
+
+const (
+	defaultUsersLimit  = 100
+	maxUsersLimit      = 100
+	defaultUsersOffset = 0
 )
 
 func (s *UsersService) GetUsers(ctx context.Context, limit *int, offset *int) ([]domain.User, error) {
-	if limit == nil {
-		defaultLimit := 100
-		limit = &defaultLimit
+	page, err := pagination.Normalize(limit, offset, defaultUsersLimit, maxUsersLimit, defaultUsersOffset)
+	if err != nil {
+		return nil, fmt.Errorf("normalize pagination: %w", err)
 	}
 
-	if *limit < 0 {
-		return nil, fmt.Errorf("limit must be non-negative: %w", core_errors.ErrInvalidArgument)
-	}
+	filter := users_feature.NewGetUsersFilter(page.Limit, page.Offset)
 
-	if *limit > 100 {
-		*limit = 100
-	}
-
-	if offset != nil && *offset < 0 {
-		return nil, fmt.Errorf("offset must be non-negative: %w", core_errors.ErrInvalidArgument)
-	}
-
-	users, err := s.usersRepository.GetUsers(ctx, limit, offset)
+	users, err := s.usersRepository.GetUsers(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("get users from repository: %w", err)
 	}

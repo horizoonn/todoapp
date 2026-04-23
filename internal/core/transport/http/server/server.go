@@ -30,12 +30,20 @@ func NewHTTPServer(config Config, log core_logger.Logger, middleware ...http_mid
 
 func (s *HTTPServer) RegisterAPIRouters(routers ...*APIVersionRouter) {
 	for _, router := range routers {
-		prefix := "/api/" + string(router.apiVersion)
+		handlers := router.Handlers()
 
-		s.mux.Handle(
-			prefix+"/",
-			http.StripPrefix(prefix, router.WithMiddleware()),
-		)
+		for path, handler := range handlers {
+			s.mux.Handle(path, handler)
+		}
+	}
+}
+
+func (s *HTTPServer) RegisterRoutes(routes ...Route) {
+	for _, route := range routes {
+		path := route.Method + " " + route.Path
+		handler := route.WithMiddleware()
+
+		s.mux.Handle(path, handler)
 	}
 }
 

@@ -1,12 +1,15 @@
 package users_transport_http
 
-import "github.com/horizoonn/todoapp/internal/core/domain"
+import (
+	"github.com/google/uuid"
+	"github.com/horizoonn/todoapp/internal/core/domain"
+)
 
 type UserDTOResponse struct {
-	ID          int     `json:"id"`
-	Version     int     `json:"version"`
-	FullName    string  `json:"full_name"`
-	PhoneNumber *string `json:"phone_number"`
+	ID          uuid.UUID `json:"id"`
+	Version     int       `json:"version"`
+	FullName    string    `json:"full_name"`
+	PhoneNumber *string   `json:"phone_number"`
 }
 
 func userDTOFromDomain(user domain.User) UserDTOResponse {

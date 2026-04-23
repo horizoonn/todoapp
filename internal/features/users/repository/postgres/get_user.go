@@ -5,12 +5,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/horizoonn/todoapp/internal/core/domain"
 	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
 	core_postgres_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool"
 )
 
-func (r *UsersRepository) GetUser(ctx context.Context, id int) (domain.User, error) {
+func (r *UsersRepository) GetUser(ctx context.Context, id uuid.UUID) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -23,21 +24,19 @@ func (r *UsersRepository) GetUser(ctx context.Context, id int) (domain.User, err
 	row := r.pool.QueryRow(ctx, query, id)
 
 	var userModel UserModel
-	err := row.Scan(
-		&userModel.ID,
-		&userModel.Version,
-		&userModel.FullName,
-		&userModel.PhoneNumber,
-	)
-	if err != nil {
+	if err := userModel.Scan(row); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
-			return domain.User{}, fmt.Errorf("user with id='%d': %w", id, core_errors.ErrNotFound)
+			return domain.User{}, fmt.Errorf(
+				"user with id='%s': %w",
+				id,
+				core_errors.ErrNotFound,
+			)
 		}
 
 		return domain.User{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	userDomain := userDomainFromModel(userModel)
+	userDomain := modelToDomain(userModel)
 
 	return userDomain, nil
 }

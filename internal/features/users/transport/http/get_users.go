@@ -23,7 +23,6 @@ func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	userDomains, err := h.usersService.GetUsers(ctx, limit, offset)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get users")

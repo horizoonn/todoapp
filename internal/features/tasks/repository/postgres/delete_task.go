@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
 )
 
-func (r *TasksRepository) DeleteTask(ctx context.Context, id int) error {
+func (r *TasksRepository) DeleteTask(ctx context.Context, id uuid.UUID) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -21,7 +22,7 @@ func (r *TasksRepository) DeleteTask(ctx context.Context, id int) error {
 		return fmt.Errorf("exec query: %w", err)
 	}
 	if cmdTag.RowsAffected() == 0 {
-		return fmt.Errorf("task with id='%d': %w", id, core_errors.ErrNotFound)
+		return fmt.Errorf("task with id='%s': %w", id, core_errors.ErrNotFound)
 	}
 
 	return nil

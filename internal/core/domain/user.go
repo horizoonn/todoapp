@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/google/uuid"
 	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
 )
 
@@ -18,14 +19,14 @@ const (
 var phoneRegexp = regexp.MustCompile(`^\+[0-9]{9,14}$`)
 
 type User struct {
-	ID      int
+	ID      uuid.UUID
 	Version int
 
 	FullName    string
 	PhoneNumber *string
 }
 
-func NewUser(id int, version int, fullName string, phoneNumber *string) User {
+func NewUser(id uuid.UUID, version int, fullName string, phoneNumber *string) User {
 	return User{
 		ID:          id,
 		Version:     version,
@@ -34,8 +35,21 @@ func NewUser(id int, version int, fullName string, phoneNumber *string) User {
 	}
 }
 
-func NewUserUninitialized(fullName string, phoneNumber *string) User {
-	return NewUser(UninitializedID, UninitializedVersion, fullName, phoneNumber)
+func CreateUser(
+	fullName string,
+	phoneNumber *string,
+) User {
+	var (
+		id      = uuid.New()
+		version = 1
+	)
+
+	return NewUser(
+		id,
+		version,
+		fullName,
+		phoneNumber,
+	)
 }
 
 func (u *User) Validate() error {
@@ -71,6 +85,10 @@ func NewUserPatch(fullName Nullable[string], phoneNumber Nullable[string]) UserP
 }
 
 func (p *UserPatch) Validate() error {
+	if !p.FullName.Set && !p.PhoneNumber.Set {
+		return fmt.Errorf("user patch must contain at least one field: %w", core_errors.ErrInvalidArgument)
+	}
+
 	if p.FullName.Set && p.FullName.Value == nil {
 		return fmt.Errorf("`FullName` can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
 )
 
@@ -16,7 +17,7 @@ const (
 )
 
 type Task struct {
-	ID      int
+	ID      uuid.UUID
 	Version int
 
 	Title       string
@@ -25,18 +26,18 @@ type Task struct {
 	CreatedAt   time.Time
 	CompletedAt *time.Time
 
-	AuthorUserID int
+	AuthorUserID uuid.UUID
 }
 
 func NewTask(
-	id int,
+	id uuid.UUID,
 	version int,
 	title string,
 	description *string,
 	completed bool,
 	createdAt time.Time,
 	completedAt *time.Time,
-	authorUserID int,
+	authorUserID uuid.UUID,
 ) Task {
 	return Task{
 		ID:           id,
@@ -50,15 +51,27 @@ func NewTask(
 	}
 }
 
-func NewTaskUninitialized(title string, description *string, authorUserID int) Task {
+func CreateTask(
+	title string,
+	description *string,
+	authorUserID uuid.UUID,
+) Task {
+	var (
+		id                     = uuid.New()
+		version                = 1
+		completed              = false
+		createdAt              = time.Now()
+		completedAt *time.Time = nil
+	)
+
 	return NewTask(
-		UninitializedID,
-		UninitializedVersion,
+		id,
+		version,
 		title,
 		description,
-		false,
-		time.Now(),
-		nil,
+		completed,
+		createdAt,
+		completedAt,
 		authorUserID,
 	)
 }
@@ -78,6 +91,10 @@ func (t *Task) CompletionDuration() *time.Duration {
 }
 
 func (t *Task) Validate() error {
+	if t.AuthorUserID == uuid.Nil {
+		return fmt.Errorf("`AuthorUserID` can't be empty: %w", core_errors.ErrInvalidArgument)
+	}
+
 	titleLen := len([]rune(t.Title))
 	if titleLen < MinTaskTitleLen || titleLen > MaxTaskTitleLen {
 		return fmt.Errorf("invalid `Title` len: %d (min: %d, max: %d): %w", titleLen, MinTaskTitleLen, MaxTaskTitleLen, core_errors.ErrInvalidArgument)
@@ -122,6 +139,10 @@ func NewTaskPatch(title Nullable[string], description Nullable[string], complete
 }
 
 func (p *TaskPatch) Validate() error {
+	if !p.Title.Set && !p.Description.Set && !p.Completed.Set {
+		return fmt.Errorf("task patch must contain at least one field: %w", core_errors.ErrInvalidArgument)
+	}
+
 	if p.Title.Set && p.Title.Value == nil {
 		return fmt.Errorf("`Title` can't be patched to NULL: %w", core_errors.ErrInvalidArgument)
 	}
@@ -149,12 +170,13 @@ func (t *Task) ApplyPatch(patch TaskPatch) error {
 	}
 
 	if patch.Completed.Set {
+		wasCompleted := tmp.Completed
 		tmp.Completed = *patch.Completed.Value
 
-		if tmp.Completed {
+		if tmp.Completed && !wasCompleted {
 			completedAt := time.Now()
 			tmp.CompletedAt = &completedAt
-		} else {
+		} else if !tmp.Completed {
 			tmp.CompletedAt = nil
 		}
 	}

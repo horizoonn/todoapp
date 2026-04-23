@@ -1,15 +1,28 @@
 package users_postgres_repository
 
-import "github.com/horizoonn/todoapp/internal/core/domain"
+import (
+	"github.com/google/uuid"
+	"github.com/horizoonn/todoapp/internal/core/domain"
+	core_postgres_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool"
+)
 
 type UserModel struct {
-	ID          int
+	ID          uuid.UUID
 	Version     int
 	FullName    string
 	PhoneNumber *string
 }
 
-func userDomainFromModel(model UserModel) domain.User {
+func (m *UserModel) Scan(row core_postgres_pool.Row) error {
+	return row.Scan(
+		&m.ID,
+		&m.Version,
+		&m.FullName,
+		&m.PhoneNumber,
+	)
+}
+
+func modelToDomain(model UserModel) domain.User {
 	return domain.NewUser(
 		model.ID,
 		model.Version,
@@ -18,11 +31,11 @@ func userDomainFromModel(model UserModel) domain.User {
 	)
 }
 
-func userDomainsFromModels(userModels []UserModel) []domain.User {
-	domains := make([]domain.User, len(userModels))
+func modelsToDomains(models []UserModel) []domain.User {
+	domains := make([]domain.User, len(models))
 
-	for i, model := range userModels {
-		domains[i] = userDomainFromModel(model)
+	for i, model := range models {
+		domains[i] = modelToDomain(model)
 	}
 
 	return domains

@@ -1,7 +1,6 @@
 package core_http_server
 
 import (
-	"fmt"
 	"net/http"
 
 	core_http_middleware "github.com/horizoonn/todoapp/internal/core/transport/http/middleware"
@@ -18,6 +17,7 @@ var (
 type APIVersionRouter struct {
 	*http.ServeMux
 	apiVersion ApiVersion
+	routes     []Route
 	middleware []core_http_middleware.Middleware
 }
 
@@ -29,14 +29,22 @@ func NewAPIVersionRouter(apiVersion ApiVersion, middleware ...core_http_middlewa
 	}
 }
 
-func (r *APIVersionRouter) RegisterRoutes(routes ...Route) {
-	for _, route := range routes {
-		pattern := fmt.Sprintf("%s %s", route.Method, route.Path)
-
-		r.Handle(pattern, route.WithMiddleware())
-	}
+func (r *APIVersionRouter) AddRoutes(routes ...Route) {
+	r.routes = append(r.routes, routes...)
 }
 
-func (r *APIVersionRouter) WithMiddleware() http.Handler {
-	return core_http_middleware.ChainMiddleware(r, r.middleware...)
+func (r *APIVersionRouter) Handlers() map[string]http.Handler {
+	handlers := make(map[string]http.Handler, len(r.routes))
+
+	for _, route := range r.routes {
+		pattern := route.Method + " /api/" + string(r.apiVersion) + route.Path
+		handler := core_http_middleware.ChainMiddleware(
+			route.WithMiddleware(),
+			r.middleware...,
+		)
+
+		handlers[pattern] = handler
+	}
+
+	return handlers
 }

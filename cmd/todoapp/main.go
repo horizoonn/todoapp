@@ -64,21 +64,23 @@ func main() {
 	statsTransportHTTP := stats_transport_http.NewStatsHTTPHandler(statsService)
 
 	logger.Debug("initializing HTTP server")
+	httpConfig := http_server.NewConfigMust()
 	httpServer := http_server.NewHTTPServer(
-		http_server.NewConfigMust(),
+		httpConfig,
 		*logger,
 		http_middleware.RequestID(),
 		http_middleware.Logger(logger),
 		http_middleware.Trace(),
 		http_middleware.Panic(),
+		http_middleware.CORS(httpConfig.AllowedOrigins),
 	)
 
-	apiVersionRouter := http_server.NewAPIVersionRouter(http_server.ApiVersion1)
-	apiVersionRouter.RegisterRoutes(usersTransportHTTP.Routes()...)
-	apiVersionRouter.RegisterRoutes(tasksTransportHTTP.Routes()...)
-	apiVersionRouter.RegisterRoutes(statsTransportHTTP.Routes()...)
+	apiVersionRouterV1 := http_server.NewAPIVersionRouter(http_server.ApiVersion1)
+	apiVersionRouterV1.AddRoutes(usersTransportHTTP.Routes()...)
+	apiVersionRouterV1.AddRoutes(tasksTransportHTTP.Routes()...)
+	apiVersionRouterV1.AddRoutes(statsTransportHTTP.Routes()...)
 
-	httpServer.RegisterAPIRouters(apiVersionRouter)
+	httpServer.RegisterAPIRouters(apiVersionRouterV1)
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))

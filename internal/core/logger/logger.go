@@ -28,7 +28,6 @@ func ToContext(ctx context.Context, logger *Logger) context.Context {
 func FromContext(ctx context.Context) *Logger {
 	log, ok := ctx.Value(loggerContextKey).(*Logger)
 	if !ok {
-		// Return a safe no-op logger instead of panicking to prevent app crash
 		return &Logger{Logger: zap.NewNop()}
 	}
 

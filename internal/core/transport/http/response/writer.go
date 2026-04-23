@@ -3,7 +3,7 @@ package core_http_response
 import "net/http"
 
 var (
-	statusCodeInitialized = -1
+	statusCodeUninitialized = -1
 )
 
 type ResponseWriter struct {
@@ -14,7 +14,7 @@ type ResponseWriter struct {
 func NewResponseWriter(w http.ResponseWriter) *ResponseWriter {
 	return &ResponseWriter{
 		ResponseWriter: w,
-		statusCode:     statusCodeInitialized,
+		statusCode:     statusCodeUninitialized,
 	}
 }
 
@@ -24,7 +24,7 @@ func (rw *ResponseWriter) WriteHeader(statusCode int) {
 }
 
 func (rw *ResponseWriter) GetStatusCode() int {
-	if rw.statusCode == statusCodeInitialized {
+	if rw.statusCode == statusCodeUninitialized {
 		return http.StatusOK
 	}
 

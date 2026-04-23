@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/horizoonn/todoapp/internal/core/domain"
 	core_logger "github.com/horizoonn/todoapp/internal/core/logger"
 	core_http_request "github.com/horizoonn/todoapp/internal/core/transport/http/request"
 	core_http_response "github.com/horizoonn/todoapp/internal/core/transport/http/response"
+	stats_feature "github.com/horizoonn/todoapp/internal/features/stats"
 )
 
 type GetStatsResponse struct {
@@ -30,14 +32,16 @@ func (h *StatsHTTPHandler) GetStats(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	statsDomain, err := h.statsService.GetStats(ctx, userID, from, to)
+	filter := stats_feature.NewGetStatsFilter(userID, from, to)
+
+	statsDomain, err := h.statsService.GetStats(ctx, filter)
 	if err != nil {
 		responseHandler.ErrorResponse(err, "failed to get stats")
 
 		return
 	}
 
-	response := toDTOFromDomain(statsDomain)
+	response := GetStatsResponse(toDTOFromDomain(statsDomain))
 
 	responseHandler.JSONResponse(response, http.StatusOK)
 }
@@ -57,14 +61,14 @@ func toDTOFromDomain(stats domain.Stats) GetStatsResponse {
 	return response
 }
 
-func getUserIDFromToQueryParams(r *http.Request) (*int, *time.Time, *time.Time, error) {
+func getUserIDFromToQueryParams(r *http.Request) (*uuid.UUID, *time.Time, *time.Time, error) {
 	const (
 		userIDQueryParamKey = "user_id"
 		fromQueryParamKey   = "from"
 		toQueryParamKey     = "to"
 	)
 
-	userID, err := core_http_request.GetIntQueryParam(r, userIDQueryParamKey)
+	userID, err := core_http_request.GetUUIDQueryParam(r, userIDQueryParamKey)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("get 'user_id' query param: %w", err)
 	}

@@ -3,12 +3,13 @@ package tasks_transport_http
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/horizoonn/todoapp/internal/core/domain"
 )
 
 type TaskDTOResponse struct {
-	ID      int `json:"id"`
-	Version int `json:"version"`
+	ID      uuid.UUID `json:"id"`
+	Version int       `json:"version"`
 
 	Title       string     `json:"title"`
 	Description *string    `json:"description"`
@@ -16,7 +17,7 @@ type TaskDTOResponse struct {
 	CreatedAt   time.Time  `json:"created_at"`
 	CompletedAt *time.Time `json:"completed_at"`
 
-	AuthorUserID int `json:"author_user_id"`
+	AuthorUserID uuid.UUID `json:"author_user_id"`
 }
 
 func taskDTOFromDomain(task domain.Task) TaskDTOResponse {

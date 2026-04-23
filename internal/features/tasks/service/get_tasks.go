@@ -4,29 +4,27 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/horizoonn/todoapp/internal/core/domain"
-	core_errors "github.com/horizoonn/todoapp/internal/core/errors"
+	"github.com/horizoonn/todoapp/internal/core/pagination"
+	tasks_feature "github.com/horizoonn/todoapp/internal/features/tasks"
 )
 
-func (s *TasksService) GetTasks(ctx context.Context, userID, limit, offset *int) ([]domain.Task, error) {
-	if limit == nil {
-		defaultLimit := 100
-		limit = &defaultLimit
+const (
+	defaultTasksLimit  = 100
+	maxTasksLimit      = 100
+	defaultTasksOffset = 0
+)
+
+func (s *TasksService) GetTasks(ctx context.Context, userID *uuid.UUID, limit *int, offset *int) ([]domain.Task, error) {
+	page, err := pagination.Normalize(limit, offset, defaultTasksLimit, maxTasksLimit, defaultTasksOffset)
+	if err != nil {
+		return nil, fmt.Errorf("normalize pagination: %w", err)
 	}
 
-	if *limit < 0 {
-		return nil, fmt.Errorf("limit must be non-negative: %w", core_errors.ErrInvalidArgument)
-	}
+	filter := tasks_feature.NewGetTasksFilter(userID, page.Limit, page.Offset)
 
-	if *limit > 100 {
-		*limit = 100
-	}
-
-	if offset != nil && *offset < 0 {
-		return nil, fmt.Errorf("offset must be non-negative: %w", core_errors.ErrInvalidArgument)
-	}
-
-	tasks, err := s.tasksRepository.GetTasks(ctx, userID, limit, offset)
+	tasks, err := s.tasksRepository.GetTasks(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("get tasks from repository: %w", err)
 	}

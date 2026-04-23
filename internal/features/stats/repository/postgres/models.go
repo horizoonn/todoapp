@@ -4,40 +4,40 @@ import (
 	"time"
 
 	"github.com/horizoonn/todoapp/internal/core/domain"
+	core_postgres_pool "github.com/horizoonn/todoapp/internal/core/repository/postgres/pool"
 )
 
-type TaskModel struct {
-	ID      int
-	Version int
-
-	Title       string
-	Description *string
-	Completed   bool
-	CreatedAt   time.Time
-	CompletedAt *time.Time
-
-	AuthorUserID int
+type StatsModel struct {
+	TasksCreated                       int64
+	TasksCompleted                     int64
+	TasksCompletedRate                 *float64
+	TasksAverageCompletionTimeSeconds  *float64
+	TasksAverageCompletionTimeDuration *time.Duration
 }
 
-func taskDomainFromModel(model TaskModel) domain.Task {
-	return domain.NewTask(
-		model.ID,
-		model.Version,
-		model.Title,
-		model.Description,
-		model.Completed,
-		model.CreatedAt,
-		model.CompletedAt,
-		model.AuthorUserID,
-	)
-}
-
-func taskDomainsFromModels(taskModels []TaskModel) []domain.Task {
-	domains := make([]domain.Task, len(taskModels))
-
-	for i, model := range taskModels {
-		domains[i] = taskDomainFromModel(model)
+func (m *StatsModel) Scan(row core_postgres_pool.Row) error {
+	if err := row.Scan(
+		&m.TasksCreated,
+		&m.TasksCompleted,
+		&m.TasksCompletedRate,
+		&m.TasksAverageCompletionTimeSeconds,
+	); err != nil {
+		return err
 	}
 
-	return domains
+	if m.TasksAverageCompletionTimeSeconds != nil {
+		duration := time.Duration(*m.TasksAverageCompletionTimeSeconds * float64(time.Second))
+		m.TasksAverageCompletionTimeDuration = &duration
+	}
+
+	return nil
+}
+
+func modelToDomain(model StatsModel) domain.Stats {
+	return domain.NewStats(
+		int(model.TasksCreated),
+		int(model.TasksCompleted),
+		model.TasksCompletedRate,
+		model.TasksAverageCompletionTimeDuration,
+	)
 }
