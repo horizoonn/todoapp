@@ -9,14 +9,21 @@ import (
 
 type StatsService struct {
 	statsRepository StatsRepository
+	statsCache      StatsCache
 }
 
 type StatsRepository interface {
 	GetStats(ctx context.Context, filter stats_feature.GetStatsFilter) (domain.Stats, error)
 }
 
-func NewStatsService(statsRepository StatsRepository) *StatsService {
+type StatsCache interface {
+	GetStats(ctx context.Context, filter stats_feature.GetStatsFilter) (domain.Stats, bool, int64, error)
+	SetStats(ctx context.Context, filter stats_feature.GetStatsFilter, version int64, stats domain.Stats) error
+}
+
+func NewStatsService(statsRepository StatsRepository, statsCache StatsCache) *StatsService {
 	return &StatsService{
 		statsRepository: statsRepository,
+		statsCache:      statsCache,
 	}
 }

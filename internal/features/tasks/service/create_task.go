@@ -20,5 +20,14 @@ func (s *TasksService) CreateTask(ctx context.Context, title string, description
 		return domain.Task{}, fmt.Errorf("save task in repository: %w", err)
 	}
 
+	if s.tasksCache != nil {
+		_ = s.tasksCache.SetTask(ctx, task)
+		_ = s.tasksCache.InvalidateTasks(ctx, task.AuthorUserID)
+	}
+
+	if s.statsCacheInvalidator != nil {
+		_ = s.statsCacheInvalidator.InvalidateStats(ctx, task.AuthorUserID)
+	}
+
 	return task, nil
 }
