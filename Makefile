@@ -2,18 +2,20 @@ include .env
 export
 
 export PROJECT_ROOT=${shell pwd}
+ENV_SERVICES=todoapp-postgres todoapp-redis
 
 env-up:
-	@docker compose up -d todoapp-postgres
+	@docker compose up -d ${ENV_SERVICES}
 
 env-down:
-	@docker compose down todoapp-postgres
+	@docker compose stop ${ENV_SERVICES}
+	@docker compose rm -f ${ENV_SERVICES}
 
 env-cleanup:
 	@read -p "Очистить все volume файлы окружения? Опасность утери данных. [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todoapp-postgres && \
-		sudo rm -rf ${PROJECT_ROOT}/.out/pgdata && \
+		docker compose down --remove-orphans && \
+		sudo rm -rf ${PROJECT_ROOT}/.out/pgdata ${PROJECT_ROOT}/.out/redis_data && \
 		echo "Файлы окружения очищены"; \
 	else \
 		echo "Очистка окружения отменена"; \
@@ -49,7 +51,7 @@ migrate-action:
 logs-cleanup:
 	@read -p "Очистить log файлы? Опасность утери логов. [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		docker compose down todoapp-postgres && \
+		docker compose down --remove-orphans && \
 		sudo rm -rf ${PROJECT_ROOT}/.out/logs && \
 		echo "Файлы логов очищены"; \
 	else \
@@ -60,6 +62,8 @@ todoapp-run:
 	@export LOGGER_FOLDER=${PROJECT_ROOT}/.out/logs && \
 	export POSTGRES_HOST=localhost && \
 	export POSTGRES_PORT=5433 && \
+	export REDIS_HOST=localhost && \
+	export REDIS_PORT=6379 && \
 	go mod tidy && \
 	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
 
@@ -68,6 +72,9 @@ todoapp-deploy:
 
 todoapp-undeploy:
 	@docker compose stop todoapp && docker compose rm -f todoapp
+
+todoapp-logs:
+	@docker compose logs -f todoapp
 
 ps:
 	@docker compose ps

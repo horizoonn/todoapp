@@ -24,9 +24,26 @@ func (s *TasksService) GetTasks(ctx context.Context, userID *uuid.UUID, limit *i
 
 	filter := tasks_feature.NewGetTasksFilter(userID, page.Limit, page.Offset)
 
+	cacheVersion := int64(0)
+	cacheReadable := false
+	if s.tasksCache != nil {
+		tasks, found, version, err := s.tasksCache.GetTasks(ctx, filter)
+		if err == nil {
+			cacheVersion = version
+			cacheReadable = true
+		}
+		if err == nil && found {
+			return tasks, nil
+		}
+	}
+
 	tasks, err := s.tasksRepository.GetTasks(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("get tasks from repository: %w", err)
+	}
+
+	if s.tasksCache != nil && cacheReadable {
+		_ = s.tasksCache.SetTasks(ctx, filter, cacheVersion, tasks)
 	}
 
 	return tasks, nil

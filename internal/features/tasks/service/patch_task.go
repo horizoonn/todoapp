@@ -23,5 +23,14 @@ func (s *TasksService) PatchTask(ctx context.Context, id uuid.UUID, patch domain
 		return domain.Task{}, fmt.Errorf("update task in repository: %w", err)
 	}
 
+	if s.tasksCache != nil {
+		_ = s.tasksCache.SetTask(ctx, patchedTask)
+		_ = s.tasksCache.InvalidateTasks(ctx, patchedTask.AuthorUserID)
+	}
+
+	if s.statsCacheInvalidator != nil {
+		_ = s.statsCacheInvalidator.InvalidateStats(ctx, patchedTask.AuthorUserID)
+	}
+
 	return patchedTask, nil
 }
