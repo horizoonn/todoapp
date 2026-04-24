@@ -67,6 +67,10 @@ func (s *HTTPServer) RegisterSwagger() {
 	)
 }
 
+func (s *HTTPServer) RegisterWeb() {
+	s.mux.Handle("GET /", http.FileServer(http.Dir("web/public")))
+}
+
 func (s *HTTPServer) Run(ctx context.Context) error {
 	mux := http_middleware.ChainMiddleware(s.mux, s.middleware...)
 

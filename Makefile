@@ -15,7 +15,7 @@ env-cleanup:
 	@read -p "Очистить все volume файлы окружения? Опасность утери данных. [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
 		docker compose down --remove-orphans && \
-		sudo rm -rf ${PROJECT_ROOT}/.out/pgdata ${PROJECT_ROOT}/.out/redis_data && \
+		sudo rm -rf ${PROJECT_ROOT}/.out/pgdata ${PROJECT_ROOT}/.out/redis_data ${PROJECT_ROOT}/.out/caddy_data && \
 		echo "Файлы окружения очищены"; \
 	else \
 		echo "Очистка окружения отменена"; \
@@ -68,13 +68,13 @@ todoapp-run:
 	go run ${PROJECT_ROOT}/cmd/todoapp/main.go
 
 todoapp-deploy:
-	@docker compose up -d --build todoapp
+	@docker compose up -d --build todoapp web-server
 
 todoapp-undeploy:
-	@docker compose stop todoapp && docker compose rm -f todoapp
+	@docker compose stop web-server todoapp && docker compose rm -f web-server todoapp
 
 swagger-gen:
-	@docker compose run --rm swagger \
+	@docker compose run --rm --user "$$(id -u):$$(id -g)" swagger \
 		init \
 		-g cmd/todoapp/main.go \
 		-o docs \
@@ -83,6 +83,9 @@ swagger-gen:
 
 todoapp-logs:
 	@docker compose logs -f todoapp
+
+web-server-logs:
+	@docker compose logs -f web-server
 
 ps:
 	@docker compose ps
