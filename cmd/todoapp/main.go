@@ -103,6 +103,7 @@ func main() {
 
 	httpServer.RegisterAPIRouters(apiVersionRouterV1)
 	httpServer.RegisterSwagger()
+	httpServer.RegisterWeb()
 
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error", zap.Error(err))
