@@ -6,10 +6,10 @@ import (
 )
 
 type UserDTOResponse struct {
-	ID          uuid.UUID `json:"id"`
-	Version     int       `json:"version"`
-	FullName    string    `json:"full_name"`
-	PhoneNumber *string   `json:"phone_number"`
+	ID          uuid.UUID `json:"id"             example:"550e8400-e29b-41d4-a716-446655440000"`
+	Version     int       `json:"version"        example:"3"`
+	FullName    string    `json:"full_name"      example:"Ivan Ivanov"`
+	PhoneNumber *string   `json:"phone_number"   example:"+79998887766"`
 }
 
 func userDTOFromDomain(user domain.User) UserDTOResponse {
