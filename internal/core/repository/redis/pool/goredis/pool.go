@@ -91,6 +91,12 @@ func (p *Pool) HSet(
 	return goredisIntCmd{cmd}
 }
 
+func (p *Pool) FlushDB(ctx context.Context) core_redis_pool.StatusCmd {
+	cmd := p.client.FlushDB(ctx)
+
+	return goredisStatusCmd{cmd}
+}
+
 func (p *Pool) Close() error {
 	return p.client.Close()
 }

@@ -18,6 +18,7 @@ Swagger-документацией, статическим web UI и Caddy rever
 | Валидация | `go-playground/validator/v10` |
 | Документация API | Swagger, `swaggo/swag` |
 | Миграции | `golang-migrate` |
+| Тестирование | `testing`, `httptest`, GoMock, Testcontainers |
 | Запуск | Docker Compose, Makefile |
 
 ## Архитектура
@@ -82,22 +83,26 @@ Redis используется как кеш для:
 │   │       ├── response/              # JSON/Error response helpers
 │   │       ├── server/                # HTTPServer, routes, API version router
 │   │       └── types/                 # Nullable[T] для PATCH-запросов
-│   └── features/
-│       ├── stats/
-│       │   ├── repository/postgres/
-│       │   ├── repository/redis/
-│       │   ├── service/
-│       │   └── transport/http/
-│       ├── tasks/
-│       │   ├── repository/postgres/
-│       │   ├── repository/redis/
-│       │   ├── service/
-│       │   └── transport/http/
-│       └── users/
-│           ├── repository/postgres/
-│           ├── service/
-│           └── transport/http/
+│   ├── features/
+│   │   ├── stats/
+│   │   │   ├── repository/postgres/
+│   │   │   ├── repository/redis/
+│   │   │   ├── service/
+│   │   │   └── transport/http/
+│   │   ├── tasks/
+│   │   │   ├── repository/postgres/
+│   │   │   ├── repository/redis/
+│   │   │   ├── service/
+│   │   │   └── transport/http/
+│   │   └── users/
+│   │       ├── repository/postgres/
+│   │       ├── service/
+│   │       └── transport/http/
+│   └── testsupport/
+│       └── integration/               # Testcontainers helpers для PostgreSQL и Redis
 ├── migrations/                        # SQL migrations
+├── scripts/
+│   └── load_test/                     # Нагрузочный тест /tasks
 ├── web/
 │   ├── Caddyfile                      # Caddy: static web + reverse proxy
 │   └── public/                        # Static web UI
@@ -171,6 +176,12 @@ make todoapp-deploy
 
 | Команда | Описание |
 | --- | --- |
+| `make help` | Показать все доступные команды |
+| `make check` | Проверить форматирование, `go vet` и unit/handler тесты |
+| `make check-all` | Запустить unit/handler и integration проверки |
+| `make fmt` | Отформатировать Go-код |
+| `make fmt-check` | Проверить `gofmt` без изменения файлов |
+| `make vet` | Запустить `go vet ./...` |
 | `make env-up` | Поднять PostgreSQL и Redis |
 | `make env-down` | Остановить и удалить PostgreSQL и Redis containers |
 | `make env-cleanup` | Остановить окружение и удалить local volumes |
@@ -180,6 +191,16 @@ make todoapp-deploy
 | `make todoapp-run` | Запустить приложение локально через `go run` |
 | `make todoapp-deploy` | Запустить Go-приложение и Caddy в Docker |
 | `make todoapp-undeploy` | Остановить Go-приложение и Caddy |
+| `make test` | Запустить unit и HTTP handler тесты |
+| `make test-race` | Запустить тесты с race detector |
+| `make test-integration` | Запустить integration тесты через Testcontainers |
+| `make test-cover` | Показать unit coverage в консоли |
+| `make test-cover-func` | Показать unit coverage по функциям |
+| `make test-cover-html` | Сгенерировать HTML-отчет unit coverage |
+| `make test-integration-cover` | Показать integration coverage по функциям |
+| `make test-integration-cover-html` | Сгенерировать HTML-отчет integration coverage |
+| `make mock-gen` | Перегенерировать все GoMock-моки |
+| `make load-test` | Запустить нагрузочный тест `/tasks` |
 | `make swagger-gen` | Перегенерировать Swagger docs |
 | `make todoapp-logs` | Смотреть логи Go-приложения |
 | `make web-server-logs` | Смотреть логи Caddy |
@@ -334,10 +355,57 @@ make migrate-down
 
 После применения миграции лучше не редактировать старые migration files. Для изменений схемы создавай новую миграцию.
 
-## Проверки
+## Тестирование И Проверки
 
 ```bash
-go test ./...
-go build -o /tmp/todoapp-check ./cmd/todoapp
-docker compose config --quiet
+make check
 ```
+
+`make check` запускает:
+
+- проверку форматирования через `gofmt`;
+- `go vet ./...`;
+- unit и HTTP handler тесты.
+
+Для полного прогона с интеграционными тестами:
+
+```bash
+make check-all
+```
+
+Интеграционные тесты используют Testcontainers и поднимают изолированные
+PostgreSQL/Redis containers. Для них нужен запущенный Docker.
+
+Отдельные команды:
+
+```bash
+make test
+make test-race
+make test-integration
+```
+
+Coverage:
+
+```bash
+make test-cover
+make test-cover-func
+make test-cover-html
+make test-integration-cover
+make test-integration-cover-html
+```
+
+HTML-отчеты сохраняются в `.out/coverage/`.
+
+Моки для service/transport тестов генерируются через GoMock:
+
+```bash
+make mock-gen
+```
+
+Нагрузочный тест `/tasks`:
+
+```bash
+make load-test
+```
+
+Результат сохраняется в `.out/load_test/result.txt`.
